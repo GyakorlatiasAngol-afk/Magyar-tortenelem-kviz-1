@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magyar Történelem Kvíz</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    background: #FDF8EE;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 3rem;
+  }
+
+  .page-pattern {
+    position: fixed; inset: 0; z-index: -1; opacity: 0.06;
+    background-image:
+      repeating-linear-gradient(0deg, #8B0000 0 1px, transparent 1px 80px),
+      repeating-linear-gradient(90deg, #3A7A00 0 1px, transparent 1px 80px);
+  }
+
+  .wrap { width: 100%; max-width: 720px; position: relative; z-index: 0; }
+
+  /* ── Banner ── */
+  .banner {
+    background: #1A0A00;
+    border-radius: 20px;
+    padding: 2.5rem 2rem 2rem;
+    margin-bottom: 1.5rem;
+    border: 2px solid #8B0000;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+  .banner::before {
+    content: "";
+    position: absolute; top: 0; left: 0; right: 0; height: 8px;
+    background: repeating-linear-gradient(90deg,
+      #CC0000 0 33.33%,
+      #FFFFFF 33.33% 66.66%,
+      #00703C 66.66% 100%);
+  }
+  .banner::after {
+    content: "";
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: repeating-linear-gradient(90deg,
+      #CC0000 0 33.33%,
+      #FFFFFF 33.33% 66.66%,
+      #00703C 66.66% 100%);
+  }
+
+  .coat-wrap { display: flex; justify-content: center; margin-bottom: 1.25rem; }
+
+  .banner-eyebrow {
+    font-family: Arial, sans-serif; font-size: 12px;
+    color: #D4A017; letter-spacing: 4px; text-transform: uppercase;
+    margin-bottom: 10px; font-weight: bold;
+  }
+  .banner-title {
+    font-family: "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 36px; font-weight: normal; color: #FDF8EE;
+    letter-spacing: 1px; line-height: 1.2; margin-bottom: 6px;
+  }
+  .banner-rule { width: 120px; height: 2px; background: #D4A017; margin: 12px auto; }
+  .banner-sub {
+    font-family: Arial, sans-serif; font-size: 13px;
+    color: #C8934A; letter-spacing: 2px; text-transform: uppercase; font-weight: bold;
+  }
+  .banner-pills {
+    display: flex; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap;
+  }
+  .banner-pill {
+    font-family: Arial, sans-serif; font-size: 12px; color: #D4A017;
+    background: #0d0600; border: 1px solid #8B0000; border-radius: 99px;
+    padding: 5px 16px; letter-spacing: 0.5px; font-weight: bold;
+  }
+
+  /* ── Progress ── */
+  .dots-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .dot { width: 11px; height: 11px; border-radius: 50%; background: #E8D5A0; border: 1.5px solid #C8A84B; transition: all .35s; }
+  .dot.correct  { background: #2E7D0A; border-color: #3B9E11; }
+  .dot.wrong    { background: #B01A1A; border-color: #D42020; }
+  .dot.current  { border: 2.5px solid #8B0000; background: #FDF8EE; }
+
+  .prog-wrap { background: #E8D5A0; border-radius: 99px; height: 6px; margin-bottom: 6px; }
+  .prog-fill { height: 6px; border-radius: 99px; background: #8B0000; transition: width .5s ease; }
+  .prog-label {
+    font-family: Arial, sans-serif; font-size: 13px; color: #5C1A00;
+    text-align: right; margin-bottom: 1.25rem; font-weight: bold;
+  }
+
+  /* ── Question Card ── */
+  .q-card {
+    background: #FFFEF8;
+    border: 1.5px solid #C8A84B;
+    border-top: 5px solid #8B0000;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .era-row { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .era-badge {
+    font-family: Arial, sans-serif; font-size: 11px; font-weight: bold;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 99px;
+    background: #FDF0C8; color: #5C1A00; border: 1.5px solid #C8A84B;
+  }
+  .diff-badge {
+    font-family: Arial, sans-serif; font-size: 11px; font-weight: bold;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 99px;
+  }
+  .diff-easy   { background: #D6F0C0; color: #1A4A00; border: 1.5px solid #3B9E11; }
+  .diff-medium { background: #FFE8B0; color: #5C2A00; border: 1.5px solid #C88A0A; }
+  .diff-hard   { background: #FFD0D0; color: #6A0000; border: 1.5px solid #CC2020; }
+
+  .q-num  { font-family: Arial, sans-serif; font-size: 14px; color: #8B0000; font-weight: bold; }
+  .q-year { font-family: Arial, sans-serif; font-size: 13px; color: #8B0000; margin-left: auto; font-style: italic; font-weight: bold; }
+
+  .q-text {
+    font-size: 22px; color: #1A0A00; line-height: 1.65; font-weight: normal;
+    font-family: "Palatino Linotype", Palatino, Georgia, serif;
+  }
+
+  /* ── Options ── */
+  .opts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 1.5rem; }
+  @media (max-width: 520px) { .opts-grid { grid-template-columns: 1fr; } }
+
+  .opt-btn {
+    background: #FDF8EE; border: 1.5px solid #C8A84B;
+    border-radius: 12px; padding: 1rem 1.1rem;
+    font-family: Arial, sans-serif; font-size: 16px; color: #2C1000;
+    cursor: pointer; text-align: left; line-height: 1.5;
+    transition: all .18s; display: flex; align-items: flex-start; gap: 12px;
+    font-weight: bold;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: #8B0000; background: #FFFEF8; color: #1A0A00; transform: translateY(-2px); }
+  .opt-btn:active:not(:disabled) { transform: translateY(0); }
+
+  .opt-letter {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 28px; border-radius: 50%;
+    border: 1.5px solid #C8A84B; font-size: 13px; font-weight: bold;
+    color: #6B1A00; flex-shrink: 0; margin-top: 2px; transition: all .18s;
+    font-family: Georgia, serif; background: #FDF0C8;
+  }
+  .opt-btn:hover:not(:disabled) .opt-letter { border-color: #8B0000; color: #8B0000; background: #FFE8B0; }
+
+  .opt-btn.reveal  { background: #D6F0C0; border-color: #2E7D0A; color: #0A2A00; }
+  .opt-btn.reveal .opt-letter { background: #2E7D0A; color: #D6F0C0; border-color: #2E7D0A; }
+  .opt-btn.wrong   { background: #FFD0D0; border-color: #B01A1A; color: #4A0000; }
+  .opt-btn.wrong .opt-letter { background: #B01A1A; color: #FFD0D0; border-color: #B01A1A; }
+  .opt-btn:disabled { cursor: not-allowed; transform: none; }
+
+  /* ── Feedback ── */
+  .feedback {
+    margin-top: 1.25rem; padding: 1.1rem 1.25rem; border-radius: 12px;
+    font-family: Arial, sans-serif; font-size: 15px; line-height: 1.75;
+  }
+  .feedback.correct { background: #D6F0C0; color: #0A2A00; border: 1.5px solid #2E7D0A; }
+  .feedback.wrong   { background: #FFD0D0; color: #4A0000; border: 1.5px solid #B01A1A; }
+  .feedback-head { font-weight: bold; margin-bottom: 6px; font-size: 17px; }
+  .feedback-quote {
+    display: block; margin-top: 10px; padding: 8px 16px;
+    border-left: 3px solid currentColor;
+    font-style: italic; font-family: "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 15px; line-height: 1.6;
+  }
+
+  /* ── Nav ── */
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+  .score-lbl { font-family: Arial, sans-serif; font-size: 15px; color: #5C1A00; font-weight: bold; }
+  .score-lbl strong { color: #8B0000; font-size: 17px; }
+  .next-btn {
+    background: #8B0000; color: #FDF8EE; border: none;
+    border-radius: 10px; padding: 13px 30px;
+    font-family: Arial, sans-serif; font-size: 16px;
+    cursor: pointer; letter-spacing: 0.4px; transition: background .2s; font-weight: bold;
+  }
+  .next-btn:hover { background: #00703C; }
+  .next-btn:disabled { opacity: .3; cursor: not-allowed; background: #8B0000; }
+
+  /* ── Results ── */
+  .results-card { background: #FFFEF8; border: 1.5px solid #C8A84B; border-radius: 20px; overflow: hidden; }
+  .res-top {
+    background: #1A0A00; padding: 2.5rem 2rem 2rem; text-align: center;
+    border-bottom: 2px solid #8B0000; position: relative;
+  }
+  .res-top::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 8px;
+    background: repeating-linear-gradient(90deg, #CC0000 0 33.33%, #FFFFFF 33.33% 66.66%, #00703C 66.66% 100%);
+  }
+  .res-coat { display: flex; justify-content: center; margin-bottom: 1rem; }
+  .res-score {
+    font-family: "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 70px; color: #FDF8EE; line-height: 1; font-weight: normal;
+  }
+  .res-pct { font-family: Arial, sans-serif; font-size: 14px; color: #D4A017; letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; font-weight: bold; }
+
+  .res-body { padding: 1.75rem; background: #FFFEF8; }
+
+  .medals-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .medal { background: #FDF8EE; border-radius: 10px; padding: 1rem; text-align: center; border: 1.5px solid #C8A84B; }
+  .medal-num { font-family: Georgia, serif; font-size: 30px; font-weight: normal; }
+  .medal-num.c { color: #2E7D0A; }
+  .medal-num.w { color: #B01A1A; }
+  .medal-num.p { color: #8B0000; }
+  .medal-lbl { font-family: Arial, sans-serif; font-size: 12px; color: #5C1A00; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; font-weight: bold; }
+
+  .res-bar-wrap { margin-bottom: 1.5rem; }
+  .res-bar-bg { background: #E8D5A0; border-radius: 99px; height: 10px; }
+  .res-bar-fill { height: 10px; border-radius: 99px; background: #8B0000; transition: width 1.2s ease; }
+  .res-bar-labels { display: flex; justify-content: space-between; font-family: Arial, sans-serif; font-size: 13px; color: #5C1A00; margin-top: 5px; font-weight: bold; }
+
+  .res-breakdown { margin-bottom: 1.5rem; }
+  .res-breakdown-title { font-family: Arial, sans-serif; font-size: 13px; color: #5C1A00; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; font-weight: bold; }
+  .era-score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .era-score-name { font-family: Arial, sans-serif; font-size: 14px; color: #3C1A00; min-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold; }
+  .era-score-bar-bg { flex: 1; background: #E8D5A0; border-radius: 99px; height: 7px; }
+  .era-score-bar-fill { height: 7px; border-radius: 99px; transition: width 1s ease; }
+  .era-score-bar-fill.full { background: #2E7D0A; }
+  .era-score-bar-fill.part { background: #8B0000; }
+  .era-score-bar-fill.zero { background: #C8A84B; }
+  .era-score-val { font-family: Arial, sans-serif; font-size: 13px; color: #5C1A00; min-width: 34px; text-align: right; font-weight: bold; }
+
+  .res-title { font-family: "Palatino Linotype", Palatino, Georgia, serif; font-size: 26px; color: #1A0A00; text-align: center; margin-bottom: 10px; font-weight: normal; }
+  .res-sub { font-family: Arial, sans-serif; font-size: 16px; color: #3C1A00; text-align: center; line-height: 1.75; margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+  .restart-btn {
+    display: block; width: 100%; background: #8B0000; color: #FDF8EE;
+    border: none; border-radius: 12px; padding: 16px;
+    font-family: Arial, sans-serif; font-size: 17px; cursor: pointer;
+    letter-spacing: 0.5px; transition: background .2s; font-weight: bold;
+  }
+  .restart-btn:hover { background: #00703C; }
+
+  .footer { text-align: center; margin-top: 1.5rem; font-family: Georgia, serif; font-size: 14px; color: #8B0000; letter-spacing: 0.3px; font-style: italic; padding-bottom: 1rem; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="page-pattern"></div>
+
+<div class="wrap">
+
+  <div class="banner">
+    <div class="coat-wrap">
+      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="37" stroke="#8B0000" stroke-width="1.5"/>
+        <ellipse cx="40" cy="40" r="28" ry="28" fill="#1A0A00"/>
+        <rect x="12" y="28" width="56" height="10" fill="#CC0000"/>
+        <rect x="12" y="38" width="56" height="10" fill="#FFFFFF" opacity="0.9"/>
+        <rect x="12" y="48" width="56" height="10" fill="#00703C"/>
+        <rect x="28" y="22" width="24" height="36" rx="3" fill="#1A0A00" stroke="#D4A017" stroke-width="1"/>
+        <rect x="28" y="22" width="11" height="36" fill="#CC0000" opacity="0.7"/>
+        <rect x="39" y="22" width="13" height="36" fill="#1A0A00" opacity="0.5"/>
+        <line x1="28" y1="40" x2="52" y2="40" stroke="#D4A017" stroke-width="0.8"/>
+        <polygon points="40,26 43,34 51,34 45,39 47,47 40,42 33,47 35,39 29,34 37,34" fill="#D4A017" opacity="0.9"/>
+      </svg>
+    </div>
+    <div class="banner-eyebrow">Tudásteszt</div>
+    <h1 class="banner-title">Magyar Történelem Kvíz</h1>
+    <div class="banner-rule"></div>
+    <div class="banner-sub">Honfoglalástól napjainkig</div>
+    <div class="banner-pills">
+      <span class="banner-pill">16 kérdés</span>
+      <span class="banner-pill">Három nehézségi szint</span>
+      <span class="banner-pill">Részletes magyarázatokkal</span>
+    </div>
+  </div>
+
+  <div id="app"></div>
+
+  <div class="footer">„A múltat tisztelni, a jelent megérteni, a jövőt építeni."</div>
+</div>
+
+<script>
+const QS = [
+  {
+    era: "Honfoglalás", year: "895–896", diff: "easy",
+    q: "Melyik évben foglalta el Árpád vezér a Kárpát-medencét a magyarok számára?",
+    opts: ["874", "896", "907", "1000"],
+    a: 1,
+    fb: "895–896-ban Árpád fejedelem vezette a hét magyar törzset a Kárpát-medencébe. Ez az esemény a magyar állam alapjainak lerakása, amelyet minden évben augusztus 20-án, az államalapítás ünnepén emlékezünk meg.",
+    quote: null
+  },
+  {
+    era: "Árpád-kor", year: "1000", diff: "easy",
+    q: "Ki volt az a magyar fejedelem, aki felvette a kereszténységet és megalapította a Magyar Királyságot az ezredfordulón?",
+    opts: ["Géza fejedelem", "Szent István király", "Imre herceg", "László fejedelem"],
+    a: 1,
+    fb: "Szent István király 1000. január 1-jén – vagy karácsonyán – vette fel a koronát, amelyet II. Szilveszter pápa küldött. Ő alapította meg a Magyar Királyságot, bevezette a kereszténységet, és megszervezte az egyházi és világi igazgatást. 1083-ban szentté avatták.",
+    quote: "\u201eIntelmek\" – István intelmei fiához, Imre herceghez, c. 1015"
+  },
+  {
+    era: "Árpád-kor", year: "1241–1242", diff: "medium",
+    q: "A tatárjárás során a mongol seregek melyik csatában semmisítették meg a magyar királyi hadat 1241-ben?",
+    opts: ["Mohácsi csata", "Muhi csata", "Pozsonyi csata", "Augsburgi csata"],
+    a: 1,
+    fb: "A muhi csatában (1241. április 11.) Batu kán seregei szétverték IV. Béla király hadát. Az ország nagy részét elpusztították, a lakosság közel felét megölték. IV. Béla a tatárok kivonulása után hatalmas váréptési programba kezdett, hogy megvédje az országot egy újabb támadástól.",
+    quote: null
+  },
+  {
+    era: "Anjou-kor", year: "1301–1382", diff: "hard",
+    q: "Melyik Anjou király idején élte virágkorát a középkori Magyar Királyság, és volt Közép-Európa egyik legerősebb állama?",
+    opts: ["I. Károly Róbert", "I. (Nagy) Lajos", "II. András", "IV. Béla"],
+    a: 1,
+    fb: "I. (Nagy) Lajos (1342–1382) alatt a Magyar Királyság hatalma csúcsára ért. Egyszerre volt magyar és lengyel király, seregei az Adriától a Fekete-tengerig uralták a régiót. Udvarában virágzott a lovagi kultúra, és ő alapította az első magyar egyetemet Pécsett 1367-ben.",
+    quote: null
+  },
+  {
+    era: "Hunyadi-kor", year: "1456", diff: "easy",
+    q: "Hunyadi János 1456-ban melyik városnál aratott diadalt az oszmán sereg felett, megmentve Európát a további török terjeszkedéstől?",
+    opts: ["Buda", "Belgrád (Nándorfehérvár)", "Temesvár", "Eger"],
+    a: 1,
+    fb: "A nándorfehérvári diadal (1456. július 22.) Hunyadi János legnagyobb győzelme volt. Megállította II. Mehmed szultán seregét, aki korábban bevette Konstantinápolyt. III. Callixtus pápa ezért rendelte el a déli harangszót, amely mind a mai napig szól a katolikus templomokban.",
+    quote: "\u201eMagyarország a kereszténység védőbástyája.\" – középkori jelmondat"
+  },
+  {
+    era: "Mátyás-kor", year: "1458–1490", diff: "easy",
+    q: "Melyik magyar király volt Hunyadi Mátyás, aki igazságos és bölcs uralmáról vált híressé a nép körében?",
+    opts: ["I. Mátyás", "II. Mátyás", "III. Mátyás", "Mátyás nádor"],
+    a: 0,
+    fb: "Hunyadi Mátyást 1458-ban, mindössze 15 évesen választotta királlyá a nemesség. Igazságos Mátyásként emlegeti a néphagyomány. Reneszánsz udvarát Európa-szerte csodálták, a Corvina-könyvtára az egyik legnagyobb humanista gyűjtemény volt. \u201eMeghalt Mátyás király, oda az igazság!\" – tartja a mondás.",
+    quote: "\u201eMeghalt Mátyás király, oda az igazság!\" – régi magyar közmondás"
+  },
+  {
+    era: "Mohács utáni kor", year: "1526", diff: "medium",
+    q: "A mohácsi csata (1526) tragikus következménye mi lett a Magyar Királyságra nézve?",
+    opts: [
+      "Magyarország egyesült Ausztriával",
+      "Az ország három részre szakadt: királyi, erdélyi és török hódoltságra",
+      "A törökök azonnal elfoglalták egész Magyarországot",
+      "II. Lajos király fogságba esett"
+    ],
+    a: 1,
+    fb: "A mohácsi vész után Magyarország három részre szakadt: a Habsburg uralom alatt álló Királyi Magyarországra, az önálló Erdélyi Fejedelemségre és a török hódoltságra. Ez az állapot közel 150 évig tartott, és mélyrehatóan meghatározta a magyar történelem menetét.",
+    quote: null
+  },
+  {
+    era: "Rákóczi-szabadságharc", year: "1703–1711", diff: "medium",
+    q: "Ki vezette a Habsburgok ellen indított nagy magyar szabadságharcot 1703 és 1711 között?",
+    opts: ["Zrínyi Miklós", "Thököly Imre", "II. Rákóczi Ferenc", "Bethlen Gábor"],
+    a: 2,
+    fb: "II. Rákóczi Ferenc vezette a kuruc szabadságharcot a Habsburg elnyomás ellen. A szatmári béke (1711) után emigrációba kényszerült, és Rodostóban hunyt el. Hamvait 1906-ban hozták haza Kassára. \u201eCum Deo pro Patria et Libertate\" – ez volt a kurucok jelmondata.",
+    quote: "\u201eIstennel a Hazáért és a Szabadságért.\" – a kurucok jelmondata"
+  },
+  {
+    era: "Reformkor", year: "1825–1848", diff: "medium",
+    q: "Kit nevezünk \u201ea legnagyobb magyarnak\", aki a reformkorban felajánlotta egyévi jövedelmét a Magyar Tudományos Akadémia alapítására?",
+    opts: ["Kossuth Lajos", "Deák Ferenc", "Gróf Széchenyi István", "Petőfi Sándor"],
+    a: 2,
+    fb: "Gróf Széchenyi István 1825-ben felajánlotta egyévi jövedelmét – 60 000 forintot – a Magyar Tudományos Akadémia megalapítására. Ő építtette a Lánchidat, korszerűsítette a Dunai hajózást és a Tisza szabályozását. Kossuth Lajos nevezte őt \u201ea legnagyobb magyarnak\".",
+    quote: "\u201eA múltat tisztelni kell, a jövőt építeni.\" – Széchenyi István"
+  },
+  {
+    era: "1848–49-es forradalom", year: "1848", diff: "easy",
+    q: "Melyik napon robbant ki a magyar forradalom 1848-ban Pesten, amelyet ma nemzeti ünnepként tartunk számon?",
+    opts: ["Február 14.", "Március 15.", "Április 4.", "Október 6."],
+    a: 1,
+    fb: "1848. március 15-én Petőfi Sándor szavalta el a Nemzeti dalt a pesti fiatalság előtt, és kinyomtatták a 12 pontot. Ez a nap a magyar forradalom és szabadságharc kezdete, amelyet ma nemzeti ünnepként ünneplünk. \u201eTalpra magyar, hí a haza!\" – kezdődik a Nemzeti dal.",
+    quote: "\u201eTalpra magyar, hí a haza! / Itt az idő, most vagy soha!\" – Petőfi Sándor, Nemzeti dal, 1848"
+  },
+  {
+    era: "Dualizmus kora", year: "1867", diff: "medium",
+    q: "Az 1867-es kiegyezés milyen új államalakulatot hozott létre Magyarország és Ausztria között?",
+    opts: [
+      "Magyar Köztársaság",
+      "Osztrák–Magyar Monarchia",
+      "Dunai Konföderáció",
+      "Magyar Királyság önálló hadseregel"
+    ],
+    a: 1,
+    fb: "Az 1867-es kiegyezés létrehozta az Osztrák–Magyar Monarchiát, amelyben Magyarország belső önállóságot kapott. Deák Ferenc és Andrássy Gyula munkája volt ez a megállapodás. A Monarchia fénykora a millennium éve (1896) körül zajlott, amikor Budapest villámsebességgel fejlődött.",
+    quote: null
+  },
+  {
+    era: "Trianon", year: "1920", diff: "medium",
+    q: "A trianoni békeszerződés (1920) mekkora területét veszítette el a történelmi Magyarország?",
+    opts: [
+      "Területének egyharmadát",
+      "Területének kétharmadát",
+      "Területének felét",
+      "Alig veszített területet"
+    ],
+    a: 1,
+    fb: "A trianoni békével Magyarország elveszítette területének közel kétharmadát és lakosságának egyharmadát. A határon kívülre került magyarok száma mintegy 3,3 millió volt. Ez máig a legfájdalmasabb esemény a magyar nemzeti emlékezetben. \u201eNem! Nem! Soha!\" – volt a kor jelszava.",
+    quote: "\u201eCsonka Magyarország nem ország, egész Magyarország mennyország.\" – korabeli jelmondat"
+  },
+  {
+    era: "II. világháború", year: "1944–1945", diff: "hard",
+    q: "Mi volt a Nyilaskeresztes Párt rémuralmának legszörnyűbb bűntette 1944–45-ben Budapesten?",
+    opts: [
+      "A parlament felrobbantása",
+      "Zsidók tömeges lemészárlása és a Dunába lövése",
+      "Budapest átadása harc nélkül",
+      "A koronaékszerek elrablása"
+    ],
+    a: 1,
+    fb: "1944–45 telén a nyilasok több tízezer zsidót és más üldözöttet gyilkoltak meg Budapesten, sokakat a Duna-parton lőttek bele a folyóba. Ma a Cipők a Duna-parton emlékmű állít emléket az áldozatoknak. Ez az időszak a magyar történelem egyik legsötétebb fejezete.",
+    quote: null
+  },
+  {
+    era: "1956-os forradalom", year: "1956", diff: "easy",
+    q: "Az 1956-os magyar forradalom és szabadságharc melyik ország szovjet megszállása ellen robbant ki?",
+    opts: [
+      "Csehszlovákia ellen irányult",
+      "A szovjet megszállás és kommunista diktatúra ellen",
+      "Ausztria ellen irányult",
+      "A nyugati hatalmak ellen irányult"
+    ],
+    a: 1,
+    fb: "1956. október 23-án Budapest utcáin tört ki a forradalom a szovjet megszállás és a kommunista diktatúra ellen. Nagy Imre miniszterelnök kihirdette a semlegességet, de a szovjet csapatok november 4-én vérbe fojtották a felkelést. A forradalmat az egész szabad világ csodálattal követte.",
+    quote: "\u201eMagyarok, segítségünkre van szükségünk!\" – 1956-os rádióadás"
+  },
+  {
+    era: "Rendszerváltás", year: "1989–1990", diff: "medium",
+    q: "Melyik szimbolikus esemény jelezte 1989-ben, hogy Magyarország megnyitja határait a vasfüggönyön, lehetővé téve ezrek nyugatra menekülését?",
+    opts: [
+      "A berlini fal lebontása",
+      "A magyar–osztrák határ megnyitása",
+      "A szovjet csapatok kivonulása",
+      "Az első szabad választások megtartása"
+    ],
+    a: 1,
+    fb: "1989. május 2-án Magyarország elkezdte lebontani a vasfüggönyt az osztrák határon. Szeptember 11-én teljesen megnyitotta a határt, és több tízezer kelet-német állampolgár menekülhetett Nyugat-Németországba. Ez az esemény felgyorsította a berlini fal leomlását és a kommunizmus összeomlását Európában.",
+    quote: null
+  },
+  {
+    era: "Modern Magyarország", year: "2004", diff: "easy",
+    q: "Melyik évben csatlakozott Magyarország az Európai Unióhoz?",
+    opts: ["2000", "2002", "2004", "2007"],
+    a: 2,
+    fb: "Magyarország 2004. május 1-jén csatlakozott az Európai Unióhoz, tíz közép- és kelet-európai országgal együtt. Ez az ország történetének egyik legjelentősebb fordulópontja volt, amely megnyitotta a határokat, lehetővé tette a szabad mozgást és az európai piachoz való hozzáférést.",
+    quote: null
+  }
+];
+
+const L = ['A','B','C','D'];
+let cur=0, sel=null, ans=[], score=0;
+
+function render(){
+  const app = document.getElementById('app');
+  if(cur >= QS.length){ showResults(app); return; }
+  const q = QS[cur];
+  const done = ans[cur] !== undefined;
+  const pct = Math.round((cur / QS.length) * 100);
+
+  const dots = QS.map((_,i) => {
+    let c = 'dot';
+    if(i===cur) c += ' current';
+    else if(ans[i]===true) c += ' correct';
+    else if(ans[i]===false) c += ' wrong';
+    return '<div class="'+c+'"></div>';
+  }).join('');
+
+  const opts = q.opts.map((o,i) => {
+    let c = 'opt-btn';
+    if(done){
+      if(i===q.a) c += ' reveal';
+      else if(i===sel && sel!==q.a) c += ' wrong';
+    }
+    return '<button class="'+c+'" onclick="pick('+i+')" '+(done?'disabled':'')+'><span class="opt-letter">'+L[i]+'</span>'+o+'</button>';
+  }).join('');
+
+  let fb = '';
+  if(done){
+    const ok = ans[cur];
+    const quoteHtml = q.quote ? '<span class="feedback-quote">'+q.quote+'</span>' : '';
+    fb = '<div class="feedback '+(ok?'correct':'wrong')+'">'
+       + '<div class="feedback-head">'+(ok ? '&#10003;&nbsp; Helyes!' : '&#10007;&nbsp; Sajnos nem.')+'</div>'
+       + q.fb + quoteHtml + '</div>';
+  }
+
+  const diffCls   = {easy:'diff-easy', medium:'diff-medium', hard:'diff-hard'}[q.diff];
+  const diffLabel = {easy:'Könnyű', medium:'Közepes', hard:'Nehéz'}[q.diff];
+
+  app.innerHTML =
+    '<div class="dots-row">'+dots+'</div>'
+  + '<div class="prog-wrap"><div class="prog-fill" style="width:'+pct+'%"></div></div>'
+  + '<div class="prog-label">'+( cur+1)+'. kérdés / '+QS.length+'</div>'
+  + '<div class="q-card">'
+  +   '<div class="era-row">'
+  +     '<span class="era-badge">'+q.era+'</span>'
+  +     '<span class="diff-badge '+diffCls+'">'+diffLabel+'</span>'
+  +     '<span class="q-num">'+( cur+1)+'. kérdés</span>'
+  +     '<span class="q-year">'+q.year+'</span>'
+  +   '</div>'
+  +   '<div class="q-text">'+q.q+'</div>'
+  +   '<div class="opts-grid">'+opts+'</div>'
+  +   fb
+  + '</div>'
+  + '<div class="nav-row">'
+  +   '<span class="score-lbl">Eredmény: <strong>'+score+'</strong> / '+Object.keys(ans).length+'</span>'
+  +   '<button class="next-btn" onclick="nextQ()" '+(! done?'disabled':'')+'>'
+  +     (cur < QS.length-1 ? 'Következő kérdés &rarr;' : 'Eredmény megtekintése &rarr;')
+  +   '</button>'
+  + '</div>';
+}
+
+function pick(i){
+  if(ans[cur]!==undefined) return;
+  sel = i;
+  const ok = i === QS[cur].a;
+  ans[cur] = ok;
+  if(ok) score++;
+  render();
+}
+
+function nextQ(){
+  if(ans[cur]===undefined) return;
+  cur++; sel=null; render();
+}
+
+function restart(){ cur=0; sel=null; ans=[]; score=0; render(); }
+
+function showResults(app){
+  const total = QS.length;
+  const pct = Math.round((score/total)*100);
+  const wrong = total - score;
+
+  const eraMap = {};
+  QS.forEach((q,i) => {
+    if(!eraMap[q.era]) eraMap[q.era] = {total:0, correct:0};
+    eraMap[q.era].total++;
+    if(ans[i]===true) eraMap[q.era].correct++;
+  });
+
+  const eraRows = Object.entries(eraMap).map(function(entry){
+    const era = entry[0]; const d = entry[1];
+    const ep = Math.round((d.correct/d.total)*100);
+    const fillCls = ep===100 ? 'full' : ep===0 ? 'zero' : 'part';
+    return '<div class="era-score-row">'
+      + '<span class="era-score-name">'+era+'</span>'
+      + '<div class="era-score-bar-bg"><div class="era-score-bar-fill '+fillCls+'" id="ebar-'+era.replace(/\W/g,'')+'" style="width:0%"></div></div>'
+      + '<span class="era-score-val">'+d.correct+'/'+d.total+'</span>'
+      + '</div>';
+  }).join('');
+
+  let title, sub;
+  if(pct===100){ title="Kiváló! Igazi történész!"; sub="Tökéletes eredmény — a honfoglalástól az EU-csatlakozásig minden kérdésre tudta a választ. Gratulálunk, ez valóban rendkívüli tudás!"; }
+  else if(pct>=87){ title="Brávó! Kiváló teljesítmény!"; sub="Mélyen ismeri a magyar történelmet, és ez nagyon szép! Csak néhány nehezebb kérdésnél akadt meg — de az összeredmény igen impresszív."; }
+  else if(pct>=68){ title="Szép munka! Jó eredmény!"; sub="Jól ismeri a magyar múltat, a legtöbb kérdésre helyesen válaszolt. A néhány hiányosság könnyen pótolható egy kis olvasással!"; }
+  else if(pct>=50){ title="Derék kezdés!"; sub="A kérdések felénél helyes választ adott — ez jó alap! Érdemes visszanézni, melyik kérdéseknél tévedett, és utánaolvasni az adott kornak."; }
+  else{ title="A történelem vár!"; sub="Ne csüggedjen — a magyar történelem 1100 évet ölel fel, sok izgalmas eseménnyel. Próbálja újra, és olvasson utána a kedves koroknak!"; }
+
+  app.innerHTML =
+    '<div class="results-card">'
+  + '<div class="res-top">'
+  +   '<div class="res-coat">'
+  +     '<svg width="60" height="60" viewBox="0 0 60 60" fill="none">'
+  +       '<circle cx="30" cy="30" r="28" stroke="#8B0000" stroke-width="1.5"/>'
+  +       '<rect x="8" y="22" width="44" height="8" fill="#CC0000"/>'
+  +       '<rect x="8" y="30" width="44" height="8" fill="#FFFFFF" opacity="0.9"/>'
+  +       '<rect x="8" y="38" width="44" height="8" fill="#00703C"/>'
+  +       '<polygon points="30,14 33,22 41,22 35,27 37,35 30,30 23,35 25,27 19,22 27,22" fill="#D4A017"/>'
+  +     '</svg>'
+  +   '</div>'
+  +   '<div class="res-score">'+score+' / '+total+'</div>'
+  +   '<div class="res-pct">'+pct+'% helyes</div>'
+  + '</div>'
+  + '<div class="res-body">'
+  +   '<div class="medals-grid">'
+  +     '<div class="medal"><div class="medal-num c">'+score+'</div><div class="medal-lbl">Helyes</div></div>'
+  +     '<div class="medal"><div class="medal-num w">'+wrong+'</div><div class="medal-lbl">Téves</div></div>'
+  +     '<div class="medal"><div class="medal-num p">'+pct+'%</div><div class="medal-lbl">Eredmény</div></div>'
+  +   '</div>'
+  +   '<div class="res-bar-wrap">'
+  +     '<div class="res-bar-bg"><div class="res-bar-fill" id="rbar" style="width:0%"></div></div>'
+  +     '<div class="res-bar-labels"><span>0%</span><span>100%</span></div>'
+  +   '</div>'
+  +   '<div class="res-breakdown">'
+  +     '<div class="res-breakdown-title">Teljesítmény korok szerint</div>'
+  +     eraRows
+  +   '</div>'
+  +   '<div class="res-title">'+title+'</div>'
+  +   '<div class="res-sub">'+sub+'</div>'
+  +   '<button class="restart-btn" onclick="restart()">Próbálja újra!</button>'
+  + '</div>'
+  + '</div>';
+
+  setTimeout(function(){
+    const rb = document.getElementById('rbar');
+    if(rb) rb.style.width = pct + '%';
+    Object.entries(eraMap).forEach(function(entry){
+      const era = entry[0]; const d = entry[1];
+      const ep = Math.round((d.correct/d.total)*100);
+      const el = document.getElementById('ebar-' + era.replace(/\W/g,''));
+      if(el) el.style.width = (ep===0 ? 8 : ep) + '%';
+    });
+  }, 150);
+}
+
+render();
+</script>
+</body>
+</html>
